@@ -1,265 +1,127 @@
 ---
-title: 在STM32上模拟Linux自动初始化过程
-tag: STM32 框架
+title: 在 STM32 上实现可维护的 Initcall 自动初始化
+date: 2022-07-12 10:00:00
+tags:
+  - STM32
+  - 嵌入式
+  - 启动流程
+  - 链接脚本
+  - 函数指针
 abbrlink: 507015846
 ---
-####    一、通常我们写程序都是按照这个套路，一个函数一个函数按照顺序逻辑一个一个的执行下去
 
-```c
-int main(int agrc, void *argv)
-{
-	systimer_init();
-    usart_init();
-    gpio_init();
-    tim_init();
-    iwdg_init();
-    bsp_init();
-    while(true)
-    {
-        ...
-    }
+在 STM32 项目里，`main` 函数很容易变成一串初始化调用：时钟、串口、GPIO、定时器、看门狗和应用层组件全部堆在一起。模块变多以后，初始化顺序难以维护，模块之间也会产生不必要的耦合。
 
-}
+Linux 内核和不少嵌入式 RTOS 会把初始化函数放进特定的链接段，再由启动框架按阶段统一执行。下面用一个精简版 Initcall 说明这种思路。
+
+## 一、核心思路
+
+每个模块只需要完成两件事：实现自己的初始化函数，并通过宏把函数指针放入指定段。启动时遍历段的起止地址，依次调用其中的函数。
+
+```text
+模块实现 init 函数
+        ↓
+宏把函数指针放入 initcallNinit 段
+        ↓
+链接脚本收集同名段
+        ↓
+启动代码遍历段并调用函数
 ```
 
-如果逻辑非常复杂，涉及的模块比较多，那么这种顺序执行的代码就会比较臃肿，各模块耦合非常紧密。Linux kernel 中，有各种外设驱动，想按照一个顺序逻辑执行下去，几乎是不可能的。
-
-而Linux kenrel 代码能有这么大的代码量，大而不乱，把各层次，各模块有效的分离，而大量的代码又有逻辑的组织在一起，和这个initcall 有至关重要的作用。
-
-通过模仿这种方式，最后把main函数代码清空，分离这种逻辑，又实现同样的功能。
-
-如何能实现这样的功能了，需要一些背景知识：
-
-1，程序代码的组织
-
-2，链接脚本相关的知识。
-
-3，函数指针的应用。
+## 二、用宏注册初始化函数
 
 ```c
-int main(int agrc, void *argv)
-{
-    int a;
-    int b = 0;
-    typedef void (*initcall_t)(void);
-    initcall_t fn1;
-    initcall_t fn2 = system_init();
-}
+typedef void (*initcall_t)(void);
 
+#define INIT_EXPORT(fn, level) \
+    static const initcall_t __initcall_##fn##level \
+    __attribute__((used, section("initcall" #level "init"))) = fn
+
+#define INIT_PREV_EXPORT(fn)      INIT_EXPORT(fn, 0)
+#define INIT_DEVICE_EXPORT(fn)    INIT_EXPORT(fn, 1)
+#define INIT_COMPONENT_EXPORT(fn) INIT_EXPORT(fn, 2)
+#define INIT_ENV_EXPORT(fn)       INIT_EXPORT(fn, 3)
+#define INIT_APP_EXPORT(fn)       INIT_EXPORT(fn, 4)
 ```
 
-上述的a,fn1都是存放在bss 段中，b,fn2是存放在data段中，因为已经给定了初始值，而实现这个intcall会把需要自动初始化的数据放到一个自定义的段中去，如.initcall。
+`level` 表示初始化阶段。时钟和底层硬件应先执行，应用层初始化放在后面，这样顺序由框架统一管理，而不是依赖文件排列顺序。
 
-如何放到特定的段中了，就需要用到了__attribute__((section(x)))关键字，来改变的数据存放段。
+## 三、GCC 下遍历链接段
+
+链接脚本需要提供段的起止符号：
+
+```ld
+.initcall : {
+    __initcall_start = .;
+    KEEP(*(initcall0init))
+    KEEP(*(initcall1init))
+    KEEP(*(initcall2init))
+    KEEP(*(initcall3init))
+    KEEP(*(initcall4init))
+    __initcall_end = .;
+} >FLASH
+```
+
+C 代码中声明这些符号，并按地址遍历：
 
 ```c
-#define __define_initcall(fn, id)                      \
-    static const initcall_t __initcall_##fn##id __used \
-        __attribute__((__section__("initcall" #id "init"))) = fn;
-
-```
-
-#### 二、本次分享的是开源项目[cola_os](https://gitee.com/schuck/cola_os)，采用MulanPSL-1.0开源协议，以下代码为了适用本人习惯修改部分地方，源码[点击查看](https://gitee.com/schuck/cola_os)
-
-###### initcall.c
-
-``` c
-#include "initcall.h"
+extern initcall_t __initcall_start[];
+extern initcall_t __initcall_end[];
 
 void do_init_call(void)
 {
-#if defined(__CC_ARM) /* ARM Compiler */
-	extern initcall_t initcall0init$$Base[];
-	extern initcall_t initcall0init$$Limit[];
-	extern initcall_t initcall1init$$Base[];
-	extern initcall_t initcall1init$$Limit[];
-	extern initcall_t initcall2init$$Base[];
-	extern initcall_t initcall2init$$Limit[];
-	extern initcall_t initcall3init$$Base[];
-	extern initcall_t initcall3init$$Limit[];
-	extern initcall_t initcall4init$$Base[];
-	extern initcall_t initcall4init$$Limit[];
-
-	initcall_t *fn;
-
-	for (fn = initcall0init$$Base;
-		 fn < initcall0init$$Limit;
-		 fn++)
-	{
-		if (fn)
-			(*fn)();
-	}
-
-	for (fn = initcall1init$$Base;
-		 fn < initcall1init$$Limit;
-		 fn++)
-	{
-		if (fn)
-			(*fn)();
-	}
-
-	for (fn = initcall2init$$Base;
-		 fn < initcall2init$$Limit;
-		 fn++)
-	{
-		if (fn)
-			(*fn)();
-	}
-
-	for (fn = initcall3init$$Base;
-		 fn < initcall3init$$Limit;
-		 fn++)
-	{
-		if (fn)
-			(*fn)();
-	}
-
-	for (fn = initcall4init$$Base;
-		 fn < initcall4init$$Limit;
-		 fn++)
-	{
-		if (fn)
-			(*fn)();
-	}
-#elif defined(__GNUC__)
-	extern initcall_t __initcall_start[];
-	extern initcall_t __initcall_end[];
-
-	initcall_t *start = __initcall_start;
-	initcall_t *end = __initcall_end;
-	initcall_t *fn;
-
-	for (fn = start; fn < end; fn++)
-	{
-		printf("initcall fn 0x%x\r\n", fn);
-		(*fn)();
-	}
-#endif
+    for (initcall_t *fn = __initcall_start;
+         fn < __initcall_end;
+         ++fn) {
+        if (*fn != 0) {
+            (*fn)();
+        }
+    }
 }
-
-/**
- * @brief  各种类型各添加一个空函数，否则未使用的类型编译器会报警告，但不影响使用
- */
-#if 1
-
-void SystemClock_Init(void)
-{
-
-}
-INIT_PREV_EXPORT(SystemClock_Init);
-
-void Device_Init(void)
-{
-
-}
-INIT_DEVICE_EXPORT(Device_Init);
-
-void Component_Init(void)
-{
-
-}
-INIT_COMPONENT_EXPORT(Component_Init);
-
-void Env_Init(void)
-{
-
-}
-INIT_ENV_EXPORT(Env_Init);
-
-void App_Init(void)
-{
-
-}
-INIT_APP_EXPORT(App_Init);
-
-#endif
-
-
 ```
 
-initcall.h
+实际工程中应确认链接脚本的段顺序，并使用 `KEEP` 防止链接器垃圾回收掉“看起来没有被引用”的函数指针。
+
+## 四、模块侧的使用方式
 
 ```c
-#ifndef _INIT_CALL_H_
-#define _INIT_CALL_H_
+static void system_clock_init(void)
+{
+    /* 配置系统时钟 */
+}
+INIT_PREV_EXPORT(system_clock_init);
 
-#define __used __attribute__((__used__))
+static void uart_init(void)
+{
+    /* 初始化调试串口 */
+}
+INIT_DEVICE_EXPORT(uart_init);
 
-typedef void (*initcall_t)(void);
-
-#define __define_initcall(fn, id)                      \
-	static const initcall_t __initcall_##fn##id __used \
-		__attribute__((__section__("initcall" #id "init"))) = fn;
-
-#define INIT_PREV_EXPORT(fn) 		__define_initcall(fn, 0)	   	//可用作系统时钟初始化
-#define INIT_DEVICE_EXPORT(fn) 		__define_initcall(fn, 1)	   	//设备接口初始化
-#define INIT_COMPONENT_EXPORT(fn) 	__define_initcall(fn, 2) 		//驱动初始化
-#define INIT_ENV_EXPORT(fn) 		__define_initcall(fn, 3)	   	//环境初始化
-#define INIT_APP_EXPORT(fn) 		__define_initcall(fn, 4)	   	// APP初始化
-
-void do_init_call(void);
-#endif
-
+static void app_init(void)
+{
+    /* 初始化应用状态 */
+}
+INIT_APP_EXPORT(app_init);
 ```
 
-#### 三、使用方式
-
-初始化函数编写完成后调用以下命令导出函数即可
+最后在 `main` 中保留一处入口：
 
 ```c
-INIT_PREV_EXPORT();				//可用作系统时钟初始化
-INIT_DEVICE_EXPORT();			//设备接口初始化
-INIT_COMPONENT_EXPORT(fn);		//驱动初始化
-INIT_ENV_EXPORT(fn);			//环境初始化
-INIT_APP_EXPORT(fn);			// APP初始化
-```
-
-
-
-```c
-#include "initcall.h"
-void SystemClock_Init(void)
+int main(void)
 {
-	//do something
-}
-INIT_PREV_EXPORT(SystemClock_Init);
-
-void Device_Init(void)
-{
-	//do something
-}
-INIT_DEVICE_EXPORT(Device_Init);
-
-void Component_Init(void)
-{
-	//do something
-}
-INIT_COMPONENT_EXPORT(Component_Init);
-
-void Env_Init(void)
-{
-	//do something
-}
-INIT_ENV_EXPORT(Env_Init);
-
-void App_Init(void)
-{
-	//do something
-}
-INIT_APP_EXPORT(App_Init);
-```
-
-最后在main.c初始化调用do_init_call();
-
-```c
-int main(int agrc, void *argv)
-{
-	do_init_call();
-	while(true)
-	{
-		//loop
-	}
+    do_init_call();
+    while (1) {
+        /* 主循环 */
+    }
 }
 ```
 
-这样就可以优雅的在其他文件内初始化各模块了。
+## 五、工程实践中的注意事项
+
+1. 初始化函数要保证幂等，避免重复调用造成资源泄漏。
+2. 如果某个阶段依赖前一阶段的返回值，应增加错误处理或状态检查。
+3. 不要在初始化函数中执行无限等待，否则后续阶段永远不会运行。
+4. ARMCC、GCC 的段符号语法不同，移植时应分别维护遍历代码。
+5. 链接脚本是这套机制的一部分，修改宏后必须检查最终 `.map` 文件。
+
+Initcall 的价值，是把“初始化顺序”从业务代码中抽离出来。模块拥有自己的初始化入口，框架负责统一调度，项目规模扩大后仍能保持清晰的启动流程。
