@@ -108,7 +108,7 @@ theme: hexo-theme-matery
 ## Docs: https://hexo.io/docs/one-command-deployment
 deploy:
   type: 'git'
-  repo: https://github.com/zhang-4411/zhang-4411.github.io.git
+  repo: git@github.com:zhang-4411/zhang-4411.github.io.git
   branch: main
   
 ## Live2D看板娘
