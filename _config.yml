@@ -5,7 +5,7 @@
 # Site
 title: 小帅的博客
 subtitle: '嵌入式 C'
-description: ''
+description: '嵌入式 C 开发者的技术博客：调试技巧、框架设计与踩坑记录'
 keywords: 嵌入式 C
 author: xiao shuai
 language: zh-CN
@@ -14,13 +14,9 @@ timezone: ''
 # URL
 ## Set your site url here. For example, if you use GitHub Page, set url as 'https://username.github.io/project'
 url: https://zhang-4411.github.io/
-#permalink: :year/:month/:day/:title/
-#permalink_defaults:
 pretty_urls:
   trailing_index: true # Set to false to remove trailing 'index.html' from permalinks
   trailing_html: true # Set to false to remove trailing '.html' from permalinks
-#permalink: :year/:month/:day/:title/
-#permalink_defaults:
 permalink: posts/:abbrlink/
 abbrlink:
   alg: crc32 #support crc16(default) and crc32
@@ -49,16 +45,16 @@ post_asset_folder: false
 relative_link: false
 future: true
 highlight:
-  enable: false
-  line_number: true
+  enable: true
+  line_number: false
   auto_detect: false
   tab_replace: ''
   wrap: true
-  hljs: false
+  hljs: true
 prismjs:
   enable: false
   preprocess: true
-  line_number: true
+  line_number: false
   tab_replace: ''
 
 # Home page setting
@@ -85,8 +81,7 @@ meta_generator: true
 ## http://momentjs.com/docs/#/displaying/format/
 date_format: YYYY-MM-DD
 time_format: HH:mm:ss
-## updated_option supports 'mtime', 'date', 'empty'
-updated_option: 'mtime'
+updated_option: 'date'
 
 # Pagination
 ## Set per_page to 0 to disable pagination
@@ -102,7 +97,22 @@ ignore:
 # Extensions
 ## Plugins: https://hexo.io/plugins/
 ## Themes: https://hexo.io/themes/
-theme: hexo-theme-matery
+theme: solitude
+
+# Live2D 看板娘（由 hexo-helper-live2d 注入）
+live2d:
+  enable: true
+  pluginModelPath: assets/
+  model:
+    use: live2d-widget-model-wanko
+  display:
+    position: left
+    width: 150
+    height: 300
+  mobile:
+    show: false
+  rect:
+    opacity: 0.7
 
 # Deployment
 ## Docs: https://hexo.io/docs/one-command-deployment
@@ -110,31 +120,19 @@ deploy:
   type: 'git'
   repo: https://github.com/zhang-4411/zhang-4411.github.io.git
   branch: main
-  
-prism_plugin:
-  mode: 'preprocess'    # realtime/preprocess
-  theme: 'tomorrow'
-  line_number: true    # default false
-  custom_css:
-  
-## Live2D看板娘
-live2d:
-  enable: true
-  pluginModelPath: assets/
-  model:
-    #模板目录，在node_modules里
-    use: live2d-widget-model-wanko
-  display:
-    position: left
-    width: 150 
-    height: 300
-  mobile:
-    # 在手机端显示
-    show: false   
-  rect:
-    opacity:0.7
 
-
+# Local search (Solitude reads search.xml)
 search:
   path: search.xml
   field: post
+  content: true
+
+# RSS（同时生成 Atom 与 RSS 2.0，兼容不同阅读器）
+feed:
+  type:
+    - atom
+    - rss2
+  path:
+    - atom.xml
+    - rss.xml
+  limit: 20

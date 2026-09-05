@@ -1,0 +1,44 @@
+<h2>Hexo → Solitude 4 迁移检查</h2>
+<p class="subtitle">当前构建可通过；请选择你希望我优先收口的部分</p>
+
+<div class="cards">
+  <div class="card" data-choice="pages" onclick="toggleSelect(this)">
+    <div class="card-image">
+      <div class="mockup">
+        <div class="mockup-header">页面与导航</div>
+        <div class="mockup-body">
+          <div class="mock-nav">首页　文章　友链　关于</div>
+          <div style="display:flex;gap:8px;margin-top:10px">
+            <div class="mock-sidebar">分类<br>标签<br>归档</div>
+            <div class="mock-content">首页 / 归档 / 分类 / 标签 / 友链 / 关于<br><small>检查链接、页面类型与生成结果</small></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="card-body"><h3>A · 页面完整性</h3><p>补齐分类页、友链页、404、归档与导航，确保每个链接都能打开。</p></div>
+  </div>
+  <div class="card" data-choice="assets" onclick="toggleSelect(this)">
+    <div class="card-image">
+      <div class="mockup">
+        <div class="mockup-header">视觉资源</div>
+        <div class="mockup-body">
+          <div class="placeholder" style="height:70px">头像 / favicon / 默认封面</div>
+          <div style="display:flex;gap:8px;margin-top:10px"><button class="mock-button">Logo</button><button class="mock-button">Banner</button></div>
+        </div>
+      </div>
+    </div>
+    <div class="card-body"><h3>B · 资源与主题观感</h3><p>迁移 Matery 里的头像、favicon、封面与背景资源，让 Solitude 首页不再引用缺失文件。</p></div>
+  </div>
+  <div class="card" data-choice="content" onclick="toggleSelect(this)">
+    <div class="card-image">
+      <div class="mockup">
+        <div class="mockup-header">文章兼容性</div>
+        <div class="mockup-body">
+          <div class="placeholder" style="height:40px">Markdown / 代码块 / 标签 / 摘要</div>
+          <div class="placeholder" style="height:28px;margin-top:8px">搜索 / RSS / 字数统计</div>
+        </div>
+      </div>
+    </div>
+    <div class="card-body"><h3>C · 内容与功能</h3><p>逐篇检查 front-matter、代码高亮、搜索、RSS、字数统计和旧链接兼容性。</p></div>
+  </div>
+</div>

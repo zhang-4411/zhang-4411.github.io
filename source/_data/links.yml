@@ -1,0 +1,12 @@
+links:
+  - class_name: 技术博客
+    type: item
+    link_list:
+      - name: 清风
+        avatar: https://mfrank2016.github.io/breeze-blog/medias/avatar.jpg
+        link: https://mfrank2016.github.io/breeze-blog/
+        descr: 技术博主，文章还不错
+      - name: 真没什么逻辑
+        avatar: https://draveness.me/images/draven-logo.png
+        link: https://draveness.me/
+        descr: 面向信仰编程

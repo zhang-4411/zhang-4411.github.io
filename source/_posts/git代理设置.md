@@ -1,6 +1,8 @@
 ---
 title: Git报错
-tag: git
+date: 2022-07-12 08:00:00
+tags:
+  - git
 abbrlink: 4031382402
 ---
 ### 解决Failed to connect to github.com port 443:Connection refused
@@ -15,7 +17,7 @@ abbrlink: 4031382402
 
 说明：10809为本地代理的端口号，打开电脑设置->网络和Internet->代理->手动设置代理查看代理端口号
 
-``` bash
+```bash
 git config --global http.proxy http://127.0.0.1:10809
 ```
 
