@@ -5,43 +5,40 @@ $(function () {
     var $notice = $('<div class="codecopy_notice"></div>')
     $('.code-area').prepend($copyIcon)
     $('.code-area').prepend($notice)
-    // “复制成功”字出现
+    function notice(ctx, message) {
+        $(ctx).prev('.codecopy_notice')
+            .stop(true, true)
+            .text(message)
+            .animate({ opacity: 1, top: 30 }, 300, function () {
+                setTimeout(function () {
+                    $(ctx).prev('.codecopy_notice').animate({ opacity: 0, top: 0 }, 500)
+                }, 900)
+            })
+    }
+
+    // 优先使用现代 Clipboard API；旧浏览器再回退到 execCommand。
     function copy(text, ctx) {
-        if (document.queryCommandSupported && document.queryCommandSupported('copy')) {
-            try {
-                document.execCommand('copy') // Security exception may be thrown by some browsers.
-                $(ctx).prev('.codecopy_notice')
-                    .text("复制成功")
-                    .animate({
-                        opacity: 1,
-                        top: 30
-                    }, 450, function () {
-                        setTimeout(function () {
-                            $(ctx).prev('.codecopy_notice').animate({
-                                opacity: 0,
-                                top: 0
-                            }, 650)
-                        }, 400)
-                    })
-            } catch (ex) {
-                $(ctx).prev('.codecopy_notice')
-                    .text("复制失败")
-                    .animate({
-                        opacity: 1,
-                        top: 30
-                    }, 650, function () {
-                        setTimeout(function () {
-                            $(ctx).prev('.codecopy_notice').animate({
-                                opacity: 0,
-                                top: 0
-                            }, 650)
-                        }, 400)
-                    })
-                return false
-            }
-        } else {
-            $(ctx).prev('.codecopy_notice').text("浏览器不支持复制")
+        if (navigator.clipboard && window.isSecureContext) {
+            navigator.clipboard.writeText(text)
+                .then(function () { notice(ctx, "复制成功") })
+                .catch(function () { fallbackCopy(text, ctx) })
+            return
         }
+        fallbackCopy(text, ctx)
+    }
+
+    function fallbackCopy(text, ctx) {
+        var textarea = document.createElement('textarea')
+        textarea.value = text
+        textarea.setAttribute('readonly', '')
+        textarea.style.position = 'fixed'
+        textarea.style.opacity = '0'
+        document.body.appendChild(textarea)
+        textarea.select()
+        var success = false
+        try { success = document.execCommand('copy') } catch (ex) { success = false }
+        document.body.removeChild(textarea)
+        notice(ctx, success ? "复制成功" : "复制失败，请手动复制")
     }
     // 复制
     $('.code-area .fa-copy').on('click', function () {

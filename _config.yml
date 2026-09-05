@@ -56,7 +56,7 @@ highlight:
   wrap: true
   hljs: false
 prismjs:
-  enable: false
+  enable: true
   preprocess: true
   line_number: true
   tab_replace: ''
@@ -110,12 +110,6 @@ deploy:
   type: 'git'
   repo: https://github.com/zhang-4411/zhang-4411.github.io.git
   branch: main
-  
-prism_plugin:
-  mode: 'preprocess'    # realtime/preprocess
-  theme: 'tomorrow'
-  line_number: true    # default false
-  custom_css:
   
 ## Live2D看板娘
 live2d:
