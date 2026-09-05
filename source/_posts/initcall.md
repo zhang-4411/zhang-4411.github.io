@@ -1,9 +1,6 @@
 ---
 title: 在STM32上模拟Linux自动初始化过程
-date: 2022-07-12 10:00:00
-tags:
-  - STM32
-  - 框架
+tag: STM32 框架
 abbrlink: 507015846
 ---
 ####    一、通常我们写程序都是按照这个套路，一个函数一个函数按照顺序逻辑一个一个的执行下去
@@ -66,7 +63,7 @@ int main(int agrc, void *argv)
 
 ###### initcall.c
 
-```c
+``` c
 #include "initcall.h"
 
 void do_init_call(void)

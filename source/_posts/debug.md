@@ -1,15 +1,13 @@
 ---
 title: 常用debug配置
-date: 2022-07-12 07:00:00
-tags:
-  - debug
 abbrlink: 2286445522
+tag: debug
 ---
 ####  实现输出不同等级的log信息，可以debug版本打开调试信息，release版本关闭调试信息，使用mobaxterm或者xshell打印带有颜色字体
 
 ###### debug.h
 
-```c
+``` c
 /**
  *
  * @Copyright Copyright (c)
