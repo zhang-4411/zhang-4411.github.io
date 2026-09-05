@@ -106,6 +106,90 @@ pre {
     tab-size: 4;
 }
 
+/* Hexo marked 的代码块由 gutter/code 两列组成，统一成原主题的深色代码面板。 */
+figure.highlight {
+    position: relative;
+    margin: 1.25rem 0;
+    overflow: auto;
+    border-radius: 0.35rem;
+    background: #2b2b2b;
+    color: #f8f8f2;
+}
+
+figure.highlight table {
+    width: 100%;
+    margin: 0;
+    border: 0;
+    border-collapse: collapse;
+    background: #2b2b2b;
+}
+
+figure.highlight td {
+    padding: 0;
+    border: 0;
+    background: #2b2b2b;
+    vertical-align: top;
+}
+
+/* 通用正文表格样式（#articleContent table 的 display:block、td 的 min-width/边框）
+   也会命中代码块里的表格，破坏其两列布局，用更高优先级覆盖回来。 */
+#articleContent figure.highlight table {
+    display: table;
+    table-layout: auto;
+    overflow: visible;
+}
+
+#articleContent figure.highlight td {
+    min-width: 0;
+    padding: 0;
+    border: 0;
+}
+
+figure.highlight td.gutter {
+    width: 3rem !important;
+    border-right: 1px solid #555;
+}
+
+figure.highlight td.gutter pre,
+figure.highlight td.code pre {
+    margin: 0 !important;
+    padding: 2.6rem 0.9rem 1rem !important;
+    border-radius: 0;
+    background: transparent !important;
+    color: #b8b8b8;
+    font-family: Consolas, Monaco, 'Courier New', monospace;
+    font-size: 0.91rem;
+    line-height: 1.6;
+    white-space: pre;
+}
+
+figure.highlight td.gutter pre {
+    min-width: 0;
+    padding-left: 0 !important;
+    padding-right: 0.55rem !important;
+    text-align: right;
+    user-select: none;
+}
+
+figure.highlight td.code pre {
+    min-width: max-content;
+    padding-left: 1rem !important;
+    color: #f8f8f2;
+}
+
+figure.highlight td.code .code-area {
+    min-width: max-content;
+    background: #2b2b2b;
+}
+
+figure.highlight span {
+    font-family: Consolas, Monaco, 'Courier New', monospace;
+    font-size: inherit;
+    line-height: inherit;
+    font-weight: inherit;
+    letter-spacing: 0;
+}
+
 .code-area::after {
     content: " ";
     position: absolute;
@@ -137,15 +221,28 @@ code {
     z-index: 1;
     filter: invert(50%);
     cursor: pointer;
+    border: 0;
+    padding: 0;
+    background: transparent;
+    font: inherit;
 }
 
 .codecopy_notice {
     position: absolute;
-    top: 0.7rem;
-    right: 6px;
+    top: 0.55rem;
+    right: 48px;
     z-index: 1;
-    filter: invert(50%);
+    padding: 2px 8px;
+    border-radius: 4px;
+    background: rgba(0, 0, 0, 0.55);
+    color: #fff;
+    font-size: 0.78rem;
+    line-height: 1.5;
+    min-width: 4.5rem;
+    text-align: center;
+    white-space: nowrap;
     opacity: 0;
+    pointer-events: none;
 }
 
 .code_lang {
