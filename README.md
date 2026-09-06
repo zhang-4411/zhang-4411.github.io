@@ -8,10 +8,8 @@
 
 | 分支 | 用途 |
 | --- | --- |
-| `release` | 当前发布分支（源码以此为准） |
-| `codex/matery-refresh` | Matery 主题刷新的开发分支 |
-| `backup` | 仓库默认分支，早期源码历史 |
-| `main` | **仅存放生成的静态页面**（hexo deploy 自动推送），不要手动修改 |
+| `main` | 源码分支（仓库默认分支，源码以此为准） |
+| `gh-pages` | **仅存放生成的静态页面**（hexo deploy 自动推送），不要手动修改 |
 
 ## 环境准备
 
@@ -21,7 +19,7 @@
 ```bash
 git clone git@github.com:zhang-4411/zhang-4411.github.io.git
 cd zhang-4411.github.io
-git checkout release
+git checkout main
 npm install
 ```
 
@@ -32,7 +30,7 @@ npm install
 | `npx hexo server` | 本地预览，<http://localhost:4000> |
 | `npx hexo clean` | 清除缓存（`db.json`）与 `public/` |
 | `npx hexo generate` | 生成静态页面到 `public/` |
-| `npx hexo deploy` | 部署：把 `public/` 推送到 `main` 分支 |
+| `npx hexo deploy` | 部署：把 `public/` 推送到 `gh-pages` 分支 |
 
 发布完整流程：
 
@@ -72,9 +70,9 @@ Hexo 默认启用了 **prismjs**（`highlight.enable: false`），高亮代码�
 
 ## 部署说明
 
-- 部署由 [hexo-deployer-git](https://github.com/hexojs/hexo-deployer-git) 完成：`hexo deploy` 会**强制推送**生成结果到 `main` 分支（提交信息形如 `Site updated: ...`），GitHub Pages 随后自动构建发布。
+- 部署由 [hexo-deployer-git](https://github.com/hexojs/hexo-deployer-git) 完成：`hexo deploy` 会**强制推送**生成结果到 `gh-pages` 分支（提交信息形如 `Site updated: ...`），GitHub Pages 从 `gh-pages` 分支构建发布。
 - `_config.yml` 的 `deploy.repo` 使用 SSH 地址，避免推送时卡在凭据交互。
-- `main` 分支上的所有内容都是生成产物，手动改动会被下一次部署覆盖。
+- `gh-pages` 分支上的所有内容都是生成产物，手动改动会被下一次部署覆盖。
 
 ## 目录结构
 

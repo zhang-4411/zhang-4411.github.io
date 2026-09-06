@@ -109,7 +109,7 @@ theme: hexo-theme-matery
 deploy:
   type: 'git'
   repo: git@github.com:zhang-4411/zhang-4411.github.io.git
-  branch: main
+  branch: gh-pages
   
 ## Live2D看板娘
 live2d:
