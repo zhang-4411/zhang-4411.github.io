@@ -14,9 +14,9 @@
       
         <tags>
             
-            <tag> 嵌入式 </tag>
-            
             <tag> STM32 </tag>
+            
+            <tag> 嵌入式 </tag>
             
             <tag> 启动流程 </tag>
             
@@ -66,9 +66,9 @@
       
         <tags>
             
-            <tag> C语言 </tag>
-            
             <tag> 嵌入式 </tag>
+            
+            <tag> C语言 </tag>
             
             <tag> 日志 </tag>
             
